@@ -20,12 +20,13 @@ class _HomePageState extends State<HomePage> {
     SocketService socketService =
         Provider.of<SocketService>(context, listen: false);
 
-    socketService.socket.on('active-bands', (payload) {
-      bands = (payload as List).map((e) => Band.fromMap(e)).toList();
-
-      setState(() {});
-    });
+    socketService.socket.on('active-bands', _handleActiveBands);
     super.initState();
+  }
+
+  _handleActiveBands(dynamic payload) {
+    bands = (payload as List).map((e) => Band.fromMap(e)).toList();
+    setState(() {});
   }
 
   @override
@@ -92,9 +93,8 @@ class _HomePageState extends State<HomePage> {
     return Dismissible(
       key: Key(band.id!),
       direction: DismissDirection.startToEnd,
-      onDismissed: (direction) {
-        socketService.socket.emit('delete-band', {'id': band.id});
-      },
+      onDismissed: (direction) =>
+          socketService.socket.emit('delete-band', {'id': band.id}),
       background: Container(
         padding: const EdgeInsets.only(left: 8.0),
         color: Colors.red,
@@ -116,9 +116,7 @@ class _HomePageState extends State<HomePage> {
           style: const TextStyle(fontSize: 20),
         ),
         title: Text(band.name!),
-        onTap: () {
-          socketService.socket.emit('band-votes', {'id': band.id});
-        },
+        onTap: () => socketService.socket.emit('band-votes', {'id': band.id}),
       ),
     );
   }
@@ -155,12 +153,12 @@ class _HomePageState extends State<HomePage> {
               actions: [
                 CupertinoDialogAction(
                   isDefaultAction: true,
-                  child: Text('Add'),
+                  child: const Text('Add'),
                   onPressed: () => addBandToList(textController.text),
                 ),
                 CupertinoDialogAction(
                   isDefaultAction: true,
-                  child: Text('Dismiss'),
+                  child: const Text('Dismiss'),
                   onPressed: () => Navigator.pop(context),
                 )
               ],
@@ -174,6 +172,7 @@ class _HomePageState extends State<HomePage> {
           Provider.of<SocketService>(context, listen: false);
       socketService.socket.emit('add-band', {'name': name});
     }
+
     Navigator.pop(context);
   }
 
@@ -183,7 +182,9 @@ class _HomePageState extends State<HomePage> {
     for (var band in bands) {
       dataMap.putIfAbsent(band.name!, () => band.votes!.toDouble());
     }
-    print(dataMap);
+
+    //print(dataMap);
+
     return Container(
       width: double.infinity,
       height: 300,
